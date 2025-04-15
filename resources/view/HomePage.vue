@@ -1,10 +1,10 @@
 <template>
-    <div id="ecommerce">
-      <!-- Header -->
+  <div id="ecommerce">
+    <!-- Header -->
 
-      <page-header :key="totalWishlistProduct"></page-header>
+    <page-header :key="totalWishlistProduct"></page-header>
 
-      <!-- <div v-show="myWishListVisible" :class="{'background-fade': myWishListVisible}"  class="background-overlay modal fade show" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" style="display: block;">
+    <!-- <div v-show="myWishListVisible" :class="{'background-fade': myWishListVisible}"  class="background-overlay modal fade show" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" style="display: block;">
               <div  class="modal-dialog modal-lg">
                 <div  class="modal-content">
                   <div class="modal-header">
@@ -87,226 +87,355 @@
               </div>
   
       </div> -->
-      <main>
+    <main>
+      <section class="py-5 text-center container">
+        <div
+          class="row py-lg-5 m-0"
+          style="height: 130px">
+          <div class="col-lg-6 col-md-8 mx-auto">
+            <h1
+              class="fw-light"
+              style="color: #033143;">
+              Products
+            </h1>
+            <p class="lead text-body-secondary">Search for a Product</p>
 
+            <!-- SearchBox -->
+            <div class="searchBox">
+              <i class="fa fa-search"></i>
+              <input
+                type="text"
+                placeholder="Search Products...."
+                v-model="enteredProductTitle"
+                @input="searchInput"
+                class="form-control" />
 
-
-        <section class="py-5 text-center container">
-          <div class="row py-lg-5 m-0" style="height: 130px">
-            <div class="col-lg-6 col-md-8 mx-auto">
-              <h1 class="fw-light" style="color: #033143;">Products</h1>
-              <p class="lead text-body-secondary">Search for a Product</p>
-
-              <!-- SearchBox -->
-              <div class="searchBox">
-                <i class="fa fa-search"></i>
-                <input
-                  type="text"
-                  placeholder="Search Products...."
-                  v-model="enteredProductTitle" @input="searchInput" class="form-control"
-                  />
-                  
-                <button class="search-btn" @click="getProduct">Search</button> 
-                              
-              </div>
-              <div class="suggestion-list  rounded mb-50 d-flex justify-content-center" style="height: 110px;">
-                <ul class="list-group text-start">
-                  <li v-for="suggestion in suggestionProduct" :key="suggestion.id" @click="selectSuggestion(suggestion)" 
-                  class="list-group-item list-group-item-action "  style="width: 450px;">
-                    {{ suggestion.title }}
-                  </li>
-                </ul>
-              </div>
+              <button
+                class="search-btn"
+                @click="getProduct">
+                Search
+              </button>
             </div>
-          
+            <div
+              class="suggestion-list  rounded mb-50 d-flex justify-content-center"
+              style="height: 110px;">
+              <ul class="list-group text-start">
+                <li
+                  v-for="suggestion in suggestionProduct"
+                  :key="suggestion.id"
+                  @click="selectSuggestion(suggestion)"
+                  class="list-group-item list-group-item-action "
+                  style="width: 450px;">
+                  {{ suggestion.title }}
+                </li>
+              </ul>
+            </div>
           </div>
-         
+        </div>
+      </section>
 
-        </section>
+      <div
+        id="ecommerce"
+        class="container py-5"
+        style="margin-top: 20px">
+        <div
+          class="d-flex justify-content-end"
+          style="margin-bottom: 20px;">
+          <button
+            @click="viewMode = 'grid'"
+            :class="{'btn-primary':viewMode === 'grid', 'btn-outline-secondary' : viewMode !== 'grid'}"
+            class="btn me-3">
+            Grid
+          </button>
+          <button
+            @click="viewMode = 'list'"
+            :class="{'btn-primary' : viewMode === 'list', 'btn-outline-secondary': viewMode !== 'list'}"
+            class="btn"
+            style="margin-right: 10px;">
+            List
+          </button>
+          <button
+            v-if="filtersApplied"
+            @click="clearFilters"
+            type="button"
+            class="btn btn-outline-secondary">
+            Clear
+          </button>
+        </div>
 
- 
-          <div id="ecommerce" class="container py-5" style="margin-top: 20px">
+        <div class="d-flex justify-content-between">
+          <select
+            @change="filterByCategory(selectedCategory)"
+            v-model="selectedCategory"
+            class="form-select"
+            aria-label="Default select example"
+            style="margin-bottom: 20px; width: 220px; margin-right: 10px;">
+            <option
+              value=""
+              disabled>
+              Select Category
+            </option>
+            <option
+              v-for="category in productCategory"
+              :key="category.id"
+              :value="category">
+              {{ category }}
+            </option>
+          </select>
 
-            <div class="d-flex justify-content-end" style="margin-bottom: 20px;">
-              <button @click="viewMode = 'grid'" :class="{'btn-primary':viewMode === 'grid', 'btn-outline-secondary' : viewMode !== 'grid'}" class="btn me-3">Grid</button>
-              <button @click="viewMode = 'list'" :class="{'btn-primary' : viewMode === 'list', 'btn-outline-secondary': viewMode !== 'list'}" class="btn" style="margin-right: 10px;">List</button>
-              <button v-if="filtersApplied" @click="clearFilters" type="button" class="btn btn-outline-secondary">Clear</button>
+          <select
+            @change="sortProduct"
+            v-model="sortOrder"
+            name=""
+            id=""
+            class="form-select"
+            aria-label="Default select example"
+            style="width: 220px; margin-bottom: 20px;">
+            <option value="">Select by title</option>
+            <option value="ascending">Ascending order</option>
+            <option value="descending">Descending order</option>
+          </select>
+        </div>
 
+        <div class="row justify-content-center mb-10">
+          <div
+            class="product-card"
+            v-for="product in filteredProducts"
+            :key="product.id"
+            :class="viewMode === 'grid' ? 'col-md-4 mb-4' : 'col-12 col-md-10 mb-4'"
+            :style="viewMode === 'list' ? { width: '90%', height: 'auto', minHeight: '200px' } : {}">
+            <div class="card shadow-0 border rounded-3 h-100">
+              <div class="card-body">
+                <!-- change nothing to  d-flex align-items-center  -->
+                <div class="row  d-flex align-items-center">
+                  <!-- Product Image -->
+                  <div
+                    :class="viewMode === 'grid' ? 'col-12 col-md-4' : 'col-12 col-md-4'">
+                    <div
+                      class="bg-image hover-zoom ripple rounded ripple-surface">
+                      <img
+                        :src="product.images[0]"
+                        class="w-100"
+                        alt="Product Image"
+                        :style="viewMode === 'list' ? {objectFit : 'cover'} : {}" />
+                      <a href="#!">
+                        <div class="hover-overlay">
+                          <div
+                            class="mask"
+                            style="background-color: rgba(253, 253, 253, 0.15);"></div>
+                        </div>
+                      </a>
+                    </div>
+                  </div>
 
-            </div>
+                  <!-- Product Details (Moved to the right of the image in list view) -->
+                  <div
+                    :class="viewMode === 'grid' ? 'col-12 col-md-8' : 'col-12 col-md-4'">
+                    <h5 class="mb-0">{{ product.title }}</h5>
 
-            <div class="d-flex justify-content-between">
-              
+                    <p class="mb-0">
+                      <strong>Brand:</strong> {{ product.brand }}
+                    </p>
+                    <p class="mb-1">
+                      <strong>category :</strong> {{product.category}}
+                    </p>
 
-              <select @change="filterByCategory(selectedCategory)" v-model="selectedCategory" class="form-select" aria-label="Default select example" style="margin-bottom: 20px; width: 220px; margin-right: 10px;">
+                    <!-- Rating and Reviews -->
+                    <div class="d-flex flex-row">
+                      <div class="text-danger mb-1 me-2">
+                        <span v-for="num in Math.floor(product.rating)">
+                          <i class="fa fa-star"></i>
+                        </span>
+                        <span
+                          v-if="product.rating > Math.floor(product.rating)">
+                          <i class="fa fa-star-half-full"></i>
+                        </span>
+                      </div>
+                      <span>{{ product.rating }} Rating</span>
+                    </div>
 
-                <option value="" disabled >Select Category</option>
-                <option v-for="category in productCategory" :key="category.id" :value="category">{{ category }}</option>
+                    <p class="mt-2">{{ product.description }}</p>
+                  </div>
 
-               </select>
-               
-
-              <select @change="sortProduct"  v-model="sortOrder" name="" id="" class="form-select" aria-label="Default select example" style="width: 220px; margin-bottom: 20px;" >
-                <option value="">Select by title</option>
-                <option value="ascending">Ascending order</option>
-                <option value="descending">Descending order </option>
-              </select> 
-            </div>
-
-            
-            <div class="row justify-content-center mb-10"
-            > 
-              <div 
-                class="product-card"
-                v-for="product in filteredProducts"
-                :key="product.id"
-                :class="viewMode === 'grid' ? 'col-md-4 mb-4' : 'col-12 col-md-10 mb-4'"
-                :style="viewMode === 'list' ? { width: '90%', height: 'auto', minHeight: '200px' } : {}"
-              >
-                <div class="card shadow-0 border rounded-3 h-100">
-                  <div class="card-body">
-
-                    <!-- change nothing to  d-flex align-items-center  -->
-                    <div class="row  d-flex align-items-center">
-
-                      <!-- Product Image -->
-                      <div :class="viewMode === 'grid' ? 'col-12 col-md-4' : 'col-12 col-md-4'">
-                        <div class="bg-image hover-zoom ripple rounded ripple-surface">
-                          <img :src="product.images[0]" class="w-100" alt="Product Image" 
-                          :style="viewMode === 'list' ? {objectFit : 'cover'} : {}" />
-                          <a href="#!">
-                            <div class="hover-overlay">
-                              <div class="mask" style="background-color: rgba(253, 253, 253, 0.15);"></div>
-                            </div>
-                          </a>
+                  <!-- Pricing, Return Policy, and Actions (Always at bottom for grid view) -->
+                  <div
+                    :class="viewMode === 'grid' ? 'col-12' : 'col-12 col-md-4'">
+                    <div class="d-flex  justify-content-between  mt-3">
+                      <div></div>
+                      <!-- Pricing and Return Policy Section -->
+                      <div class="flex-grow-1">
+                        <div class="d-flex flex-column align-items-start">
+                          <div class="d-flex flex-row align-items-center mb-1">
+                            <h4 class="mb-1 me-1">
+                              {{ discountPrice= (product.price - (product.price * product.discountPercentage / 100)).toFixed(2) }}
+                            </h4>
+                            <span class="text-danger">
+                              <s>{{ product.price }}</s>
+                            </span>
+                          </div>
+                          <strong
+                            >Discount -
+                            {{ product.discountPercentage }}%</strong
+                          >
+                          <h6 class="text-success">
+                            {{ product.shippingInformation }}
+                          </h6>
+                          <h6 class="text-muted">{{ product.returnPolicy }}</h6>
                         </div>
                       </div>
-        
-                      <!-- Product Details (Moved to the right of the image in list view) -->
-                      <div :class="viewMode === 'grid' ? 'col-12 col-md-8' : 'col-12 col-md-4'" >
 
-                            <h5 class="mb-0">{{ product.title }}</h5>
-                            
-                            <p class="mb-0"><strong>Brand:</strong> {{ product.brand }}</p>  
-                            <p class="mb-1"><strong>category :</strong> {{product.category}}</p>
-        
-                        <!-- Rating and Reviews -->
-                        <div class="d-flex flex-row">
-                          <div class="text-danger mb-1 me-2">
-                            <span v-for="num in Math.floor(product.rating)">
-                              <i class="fa fa-star"></i>
-                            </span>
-                            <span v-if="product.rating > Math.floor(product.rating)">
-                              <i class="fa fa-star-half-full"></i>
-                            </span>
-                          </div>
-                          <span>{{ product.rating }} Rating</span>
-                        </div>
-        
-                        <p class="mt-2">{{ product.description }}</p>
-                        </div>
-                    
+                      <!-- Actions Section (Buttons to the right) -->
 
-                       <!-- Pricing, Return Policy, and Actions (Always at bottom for grid view) -->
-                        <div :class="viewMode === 'grid' ? 'col-12' : 'col-12 col-md-4'">
-                          <div class="d-flex  justify-content-between  mt-3">
-                            <div></div>
-                          <!-- Pricing and Return Policy Section -->
-                            <div class="flex-grow-1">
-                              <div class="d-flex flex-column align-items-start">
-                                <div class="d-flex flex-row align-items-center mb-1">
-                                  <h4 class="mb-1 me-1">
-                                  {{ discountPrice= (product.price - (product.price * product.discountPercentage / 100)).toFixed(2) }}
-                                  </h4>
-                                  <span class="text-danger">
-                                  <s>{{ product.price }}</s>
-                                  </span>
-                                </div>
-                                <strong>Discount - {{ product.discountPercentage }}%</strong>
-                                <h6 class="text-success">{{ product.shippingInformation }}</h6>
-                                <h6 class="text-muted">{{ product.returnPolicy }}</h6>
-                              </div>
+                      <div class="d-flex flex-column mt-4">
+                        <button
+                          @click="goToProductDetails(product.id, product.title)"
+                          class="btn btn-primary btn-sm"
+                          type="button"
+                          style="background-color: #04a9f5; border: none;">
+                          Details
+                        </button>
+                        <button
+                          @click="saveToWishList(product)"
+                          class="wishlist-btn btn btn-outline-primary btn-sm mt-2"
+                          type="button">
+                          {{wishListButtonText}}
+                        </button>
+                      </div>
+
+                      <!-- wishlist alert modal -->
+                      <div
+                        v-show="showAlertModal"
+                        :class="{'addToWishlistBackground-fade': showAlertModal}"
+                        class=" background-overlay modal fade show"
+                        id="exampleModal"
+                        tabindex="-1"
+                        aria-labelledby="exampleModalLabel"
+                        aria-hidden="true"
+                        style="display: block;">
+                        <div class="modal-dialog modal-dialog-centered">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h1
+                                class="modal-title fs-5"
+                                id="exampleModalLabel">
+                                Modal title
+                              </h1>
+                              <button
+                                type="button"
+                                class="btn-close"
+                                @click="showAlertModal = false"
+                                data-bs-dismiss="modal"
+                                aria-label="Close"></button>
                             </div>
-            
-                          <!-- Actions Section (Buttons to the right) -->
-    
-                            <div class="d-flex flex-column mt-4">
-                              <button @click="goToProductDetails(product.id, product.title)" class="btn btn-primary btn-sm" type="button" style="background-color: #04a9f5; border: none;">Details</button>
-                              <button @click="saveToWishList(product)" class="wishlist-btn btn btn-outline-primary btn-sm mt-2" type="button">{{wishListButtonText}}</button>
+                            <div class="modal-body">
+                              <p>
+                                <strong>Product Added in the WishList</strong>
+                              </p>
                             </div>
-
-                            <!-- wishlist alert modal -->
-                            <div v-show="showAlertModal"  :class="{'addToWishlistBackground-fade': showAlertModal}" class=" background-overlay modal fade show" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" style="display: block;">
-                              <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content">
-                                  <div class="modal-header">
-                                    <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
-                                    <button type="button" class="btn-close" @click="showAlertModal = false" data-bs-dismiss="modal" aria-label="Close"></button>
-                                  </div>
-                                  <div class="modal-body">
-                                    <p><strong>Product Added in the WishList</strong></p>
-                                  </div>
-                                  <div class="modal-footer">
-                                    <button type="button" class="ok-btn btn btn-primary" @click="showAlertModal = false">Ok</button>
-                                  </div>
-                                </div>
-                              </div>
+                            <div class="modal-footer">
+                              <button
+                                type="button"
+                                class="ok-btn btn btn-primary"
+                                @click="showAlertModal = false">
+                                Ok
+                              </button>
                             </div>
-
-
-
-                            <div v-show="alreadyProductAlertModal"  :class="{'addToWishlistBackground-fade': alreadyProductAlertModal}" class=" background-overlay modal fade show" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" style="display: block;">
-                              <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content">
-                                  <div class="modal-header">
-                                    <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
-                                    <button type="button" class="btn-close" @click="alreadyProductAlertModal = false" data-bs-dismiss="modal" aria-label="Close"></button>
-                                  </div>
-                                  <div class="modal-body">
-                                    <p><strong>Product is already in the Wishlist</strong></p>
-                                  </div>
-                                  <div class="modal-footer">
-                                    <button type="button" class="ok-btn btn btn-primary" @click="alreadyProductAlertModal = false">Ok</button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-
-
-                        
                           </div>
                         </div>
- 
+                      </div>
+
+                      <div
+                        v-show="alreadyProductAlertModal"
+                        :class="{'addToWishlistBackground-fade': alreadyProductAlertModal}"
+                        class=" background-overlay modal fade show"
+                        id="exampleModal"
+                        tabindex="-1"
+                        aria-labelledby="exampleModalLabel"
+                        aria-hidden="true"
+                        style="display: block;">
+                        <div class="modal-dialog modal-dialog-centered">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h1
+                                class="modal-title fs-5"
+                                id="exampleModalLabel">
+                                Modal title
+                              </h1>
+                              <button
+                                type="button"
+                                class="btn-close"
+                                @click="alreadyProductAlertModal = false"
+                                data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                              <p>
+                                <strong
+                                  >Product is already in the Wishlist</strong
+                                >
+                              </p>
+                            </div>
+                            <div class="modal-footer">
+                              <button
+                                type="button"
+                                class="ok-btn btn btn-primary"
+                                @click="alreadyProductAlertModal = false">
+                                Ok
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
- 
                   </div>
                 </div>
               </div>
-
-              <nav aria-label="Page navigation example d-flex">
-                <ul class="pagination justify-content-center">
-                  <li class="page-item ">
-                    <a style="color: #04a9f5;" class="page-link" @click.prevent ="previousPage" :disabled ="currentPage === previousPage" href="#">Previous</a>
-                  </li>
-      
-                  <li class="page-item" v-for="page in totalPages" @click.prevent='gotoPage(page)'>
-                    <a style="color: #04a9f5;" class="page-link" href="#">{{page}}</a>
-                  </li>
-      
-                  <li class="page-item">
-                    <a style="color: #04a9f5;" class="page-link" @click.prevent="nextPage" :disabled ="currentPage === totalPages" href="#">next</a>
-                  </li>
-                </ul>
-              </nav>
             </div>
           </div>
 
-        
-        
-      </main>
+          <nav aria-label="Page navigation example d-flex">
+            <ul class="pagination justify-content-center">
+              <li class="page-item ">
+                <a
+                  style="color: #04a9f5;"
+                  class="page-link"
+                  @click.prevent="previousPage"
+                  :disabled="currentPage === previousPage"
+                  href="#"
+                  >Previous</a
+                >
+              </li>
 
-      <page-footer></page-footer>
-    </div>
+              <li
+                class="page-item"
+                v-for="page in totalPages"
+                @click.prevent="gotoPage(page)">
+                <a
+                  style="color: #04a9f5;"
+                  class="page-link"
+                  href="#"
+                  >{{page}}</a
+                >
+              </li>
+
+              <li class="page-item">
+                <a
+                  style="color: #04a9f5;"
+                  class="page-link"
+                  @click.prevent="nextPage"
+                  :disabled="currentPage === totalPages"
+                  href="#"
+                  >next</a
+                >
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </main>
+
+    <page-footer></page-footer>
+  </div>
 </template>
 
 <script type="module">
@@ -328,9 +457,9 @@ import Footer from '../components/Footer.vue'
           const enteredUsername = ref('');
           const enteredPassword = ref('');
           const enteredConfirmPassword = ref('');
-          
+
           const isLoggedIn = ref(false);
-          
+
           const showSignLoginModal = ref(false);
           const showCreateAccountModal = ref(false);
           const enteredProductTitle = ref('');
@@ -372,15 +501,15 @@ import Footer from '../components/Footer.vue'
           const currentRating = ref(0);
           const userReviewList = ref([]);
 
-          
+
           const totalPrice = computed(() => {
             return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
           });
-          
+
           const totalDicountPrice = computed(() => {
             return cart.reduce((discountSum, item) => discountSum + item.discountPrice * item.quantity, 0);
           });
-          
+
           const cartItemCount = computed(() => {
             return cart.reduce((count, item) => count + item.quantity, 0);
           });
@@ -399,7 +528,7 @@ import Footer from '../components/Footer.vue'
           onMounted(() => {
             allProducts();
             console.log("total price", totalPrice);
-            
+
             getCategory();
             checkLoginState();
             // getUsernameFromStorage();
@@ -522,7 +651,7 @@ import Footer from '../components/Footer.vue'
               const data = await response.json();
               productInfo.value = data;
               console.log("my product", productInfo.value);
-              await getSimilarProduct(); 
+              await getSimilarProduct();
               checkProductInCartForAdded();
               checkProductInWishList();
               console.log('fetched product', productInfo.value);
@@ -601,10 +730,10 @@ import Footer from '../components/Footer.vue'
           //   }
           // };
 
-         
+
 
           // const emit = defineEmits();
-          
+
           const saveToWishList = (product) => {
             totalWishlistProduct.value++;
 
@@ -640,7 +769,7 @@ import Footer from '../components/Footer.vue'
 
                         wishList.push(wishListItem);
                         localStorage.setItem('wishList', JSON.stringify(wishList));
-                        
+
 
                         showAlertModal.value = true;
                     } else {
@@ -818,14 +947,14 @@ import Footer from '../components/Footer.vue'
             try {
               const response = await fetch(`https://dummyjson.com/products/search?q=${enteredProductTitle.value}`);
               const data = await response.json();
-              // ecommerceData.splice(0, ecommerceData.length, ...data.products); 
+              // ecommerceData.splice(0, ecommerceData.length, ...data.products);
               ecommerceData.value = data.products;
               totalPages.value = Math.ceil(ecommerceData.length / productPerPage.value);
               paginateProducts();
               checkProductInWishList();
 
               if (enteredProductTitle.value.length >= 3) {
-                const searchedProduct = ecommerceData.filter(product => 
+                const searchedProduct = ecommerceData.filter(product =>
                   product.title.toLowerCase().includes(enteredProductTitle.value.toLowerCase())
                 );
                 if (searchedProduct.length > 0) {
@@ -949,13 +1078,13 @@ import Footer from '../components/Footer.vue'
           //   const visitedProducts = JSON.parse(localStorage.getItem('visitedProduct')) || [];
           //   const total = visitedProducts.reduce((sum, product) => sum + product.visitCount, 0);
           //   totalVisitCount.value = total;
-            
+
           // };
 
           const goToProductDetails = (productId, productTitle) => {
             const visitedProduct = JSON.parse(localStorage.getItem('visitedProduct')) || [];
-            
-           
+
+
             const existProductInVisited = visitedProduct.find(item => item.productId === productId);
 
             if(!existProductInVisited){
@@ -977,10 +1106,10 @@ import Footer from '../components/Footer.vue'
             const totalVisitCount = visitedProduct.reduce((total, item) => total + item.visitCount, 0);
 
             localStorage.setItem('totalVisitCount', totalVisitCount);
-            window.location.href = `../detail_page/detail.php?id=${productId}`;
+            window.location.href = `../detail_page/detail.html?id=${productId}`;
             // window.location.href = `../../app_page/detail_page/detail.php?id=${productId}`;
-            
-            
+
+
           };
 
 
@@ -1038,7 +1167,7 @@ import Footer from '../components/Footer.vue'
                 cartItemCount,
                 totalWishlistProduct,
                 totalProductCount,
-               
+
                 signIn,
                 createAccount,
                 createNewUserAccount,
@@ -1078,11 +1207,7 @@ import Footer from '../components/Footer.vue'
             };
       }
     }
-
-
-    
 </script>
-
 
 <style scoped>
 
@@ -1235,20 +1360,20 @@ import Footer from '../components/Footer.vue'
 
 .product-list.list-view .card-body .col-md-4 {
   order: 1;
-  max-width: 250px; 
+  max-width: 250px;
 }
 
 .product-list.list-view .card-body .col-md-8 {
-  order: 2; 
-  flex: 1; 
+  order: 2;
+  flex: 1;
 }
 
 .product-list.list-view .card-body .d-flex {
-  flex-direction: row; 
+  flex-direction: row;
 }
 
 .product-list.list-view .card-body .d-flex.justify-content-between {
-  flex-direction: column; 
+  flex-direction: column;
 }
 
 .suggestion-list {
@@ -1269,7 +1394,7 @@ import Footer from '../components/Footer.vue'
 button.btn.wishlist-btn{
   color: #033143 !important;
   border: 1px solid #033143;
- 
+
   transition: background-color 0.1s ease !important;
 }
 
@@ -1293,7 +1418,7 @@ button.btn.wishlist-btn:hover {
 button.checkout{
   border: none;
   background-color: #04a9f5 !important;
-} 
+}
 
 
 .background-fade {
@@ -1307,9 +1432,8 @@ button.checkout{
   top: 0 !important;
   left: 0 !important;
   right: 0 !important;
-  z-index: 10 !important; 
+  z-index: 10 !important;
   background-color: white !important;
   width: 100% !important;
 }
-
 </style>
